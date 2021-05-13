@@ -23,4 +23,149 @@ https://www.cnblogs.com/absfree/p/5555687.html
 
 虚引用（Phantom Reference）：虚引用是Java中最弱的引用，那么它弱到什么程度呢？它是如此脆弱以至于我们通过虚引用甚至无法获取到被引用的对象，虚引用存在的唯一作用就是当它指向的对象被回收后，虚引用本身会被加入到引用队列中，用作记录它指向的对象已被销毁。
 
-### new topic
+### About Array Comparison
+No deep comparison
+https://www.geeksforgeeks.org/compare-two-arrays-java/
+
+### functional interface
+https://www.baeldung.com/java-8-functional-interfaces
+
+### Binary indexed tree vs segment tree
+https://blog.csdn.net/Yaokai_AssultMaster/article/details/79492190
+```
+public class BinaryIndexedTree {
+	private int[] bitArr;
+
+	// O(nlogn) initialization
+//	public BinaryIndexedTree(int[] list) {
+//		this.bitArr = new int[list.length + 1];
+//		for (int i = 0; i < list.length; i++) {
+//			this.update(i, list[i]);
+//		}
+//	}
+	
+	public BinaryIndexedTree(int[] list) {
+		// O(n) initialization
+		this.bitArr = new int[list.length + 1];
+		for (int i = 0; i < list.length; i++) {
+			this.bitArr[i + 1] = list[i];
+		}
+		
+		for (int i = 1; i < this.bitArr.length; i++) {
+			int j = i + (i & -i);
+			if (j < this.bitArr.length) {
+				this.bitArr[j] += this.bitArr[i];
+			}
+		}
+	}
+	
+	/**
+	 * Add `delta` to elements in `idx` of original array
+	 * @param idx index of the element in original array that is going to be updated
+	 * @param delta number that will be added to the original element.
+	 */
+	public void update(int idx, int delta) {
+		idx += 1;
+		while (idx < this.bitArr.length) {
+			this.bitArr[idx] += delta;
+			idx = idx + (idx & -idx);
+		}
+	}
+	
+	/**
+	 * Get the sum of elements in the original array up to index `idx`
+	 * @param idx index of the last element that should be summed. 
+	 * @return sum of elements from index 0 to `idx`.
+	 */
+	public int prefixSum(int idx) {
+		idx += 1;
+		int result = 0;
+		while (idx > 0) {
+			result += this.bitArr[idx];
+			idx = idx - (idx & -idx);
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Get the range sum of elements from original array from index `from_idx` to `to_idx`
+	 * @param from_idx start index of element in original array
+	 * @param to_idx end index of element in original array
+	 * @return range sum of elements from index `from_idx` to `to_idx`
+	 */
+	public int rangeSum(int from_idx, int to_idx) {
+		return prefixSum(to_idx) - prefixSum(from_idx - 1);
+	}
+}
+————————————————
+版权声明：本文为CSDN博主「耀凯考前突击大师」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/Yaokai_AssultMaster/article/details/79492190
+```
+https://zhuanlan.zhihu.com/p/34150142
+```
+class SegmentTree {
+
+    private static class TreeNode {
+        int start, end, sum;
+        TreeNode left, right;
+
+        TreeNode(int start, int end) {
+            this.start = start;
+            this.end = end;
+        }
+    }
+
+    private TreeNode buildTree(int[] nums, int start, int end) {
+        if (start > end) return null;
+        TreeNode cur = new TreeNode(start, end);
+        if (start == end) cur.sum = nums[start];
+        else {
+            int mid = start + (end - start) / 2;
+            cur.left = buildTree(nums, start, mid);
+            cur.right = buildTree(nums, mid + 1, end);
+            cur.sum = cur.left.sum + cur.right.sum;
+        }
+        return cur;
+    }
+
+    private void updateTree(TreeNode node, int i, int val) {
+        if (node.start == node.end) {
+            node.sum = val;
+        } else {
+            int mid = node.start + (node.end - node.start) / 2;
+            if (i <= mid) updateTree(node.left, i, val);
+            else updateTree(node.right, i, val);
+            node.sum = node.left.sum + node.right.sum;
+        }
+    }
+
+    private int queryTree(TreeNode node, int i, int j) {
+        if (node.start == i && node.end == j) return node.sum;
+        else {
+            int mid = node.start + (node.end - node.start) / 2;
+            if (j <= mid) {
+                return queryTree(node.left, i, j);
+            } else if (i >= (mid + 1)) {
+                return queryTree(node.right, i, j);
+            } else {
+                return queryTree(node.left, i, mid) + queryTree(node.right, mid + 1, j);
+            }
+        }
+    }
+
+    private TreeNode root;
+
+    SegmentTree(int[] nums) {
+        root = buildTree(nums, 0, nums.length - 1);
+    }
+
+    public void update(int i, int val) {
+        updateTree(root, i, val);
+    }
+
+    public int sumRange(int i, int j) {
+        return queryTree(root, i, j);
+    }
+}
+```

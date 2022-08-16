@@ -451,3 +451,5 @@ public final int getAndAddInt(Object var1, long var2, int var4) {
 
 ### 二叉树类型
 https://blog.csdn.net/Double2hao/article/details/53286038
+
+### https://blog.51cto.com/u_15100534/2618607 有序性 可见性 原子性 指令重排
